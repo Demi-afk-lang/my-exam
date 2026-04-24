@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const EXAM_TIME = 60; 
@@ -16,14 +16,11 @@ export default function ExamPage() {
   const [stage, setStage] = useState<'landing' | 'quiz' | 'result' | 'goodbye'>('landing');
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [timeLeft, setTimeLeft] = useState(EXAM_TIME);
-  
-  // دالة تشغيل الصوت المحسنة
+
   const playSound = (src: string) => { 
     if (typeof window !== 'undefined') {
       const audio = new Audio(src);
-      audio.play().catch((err) => {
-        console.error("Audio error:", src, err);
-      }); 
+      audio.play().catch((err) => console.error("Audio error:", src, err));
     }
   };
 
@@ -38,12 +35,11 @@ export default function ExamPage() {
     return "صفر؟ أنت كنت فاتح الامتحان تتفرج على الدوائر؟ 🤡";
   };
 
-  // تشغيل صوت النتيجة عند الوصول للمرحلة النهائية
+  // تشغيل صوت النتيجة عند الوصول للمرحلة النهائية مع حل مشكلة المسافات والرموز
   useEffect(() => {
     if (stage === 'result') {
-      // التأكد من أن اسم الملف مطابق تماماً لما هو موجود في الـ public folder
-      // ملاحظة: تأكد أن الملف اسمه مثلاً "100% grade.mp3" بدون مسافات زائدة
-      const soundPath = `/exam sound/${percentage}% grade.mp3`;
+      const fileName = `${percentage}% grade.mp3`;
+      const soundPath = `/exam sound/${encodeURIComponent(fileName)}`;
       playSound(soundPath);
     }
   }, [stage, percentage]);
@@ -72,10 +68,9 @@ export default function ExamPage() {
   return (
     <main className="min-h-screen bg-[#020617] font-sans relative overflow-hidden flex items-center justify-center text-white" dir="rtl">
       <AnimatePresence mode="wait">
+        
         {stage === 'landing' && (
           <motion.div key="landing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, scale: 1.1 }} className="z-20 text-center p-6">
-              
-              {/* حل مشكلة قص حرف الـ S وحل مشكلة الترتيب */}
               <div className="relative mb-2 flex items-center justify-center" style={{ direction: 'ltr' }}>
                 <h1 className="text-7xl font-[1000] tracking-tight italic flex px-6">
                   <span className="text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]">LO</span>
@@ -159,6 +154,7 @@ export default function ExamPage() {
               <p className="text-blue-500 font-bold tracking-widest italic uppercase">See you in the next challenge</p>
           </motion.div>
         )}
+
       </AnimatePresence>
     </main>
   );
