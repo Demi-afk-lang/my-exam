@@ -16,6 +16,29 @@ export default function ExamPage() {
   const [stage, setStage] = useState<'landing' | 'quiz' | 'result' | 'goodbye'>('landing');
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [timeLeft, setTimeLeft] = useState(EXAM_TIME);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  // 1. استعادة البيانات عند تحميل الصفحة
+  useEffect(() => {
+    const savedAnswers = localStorage.getItem('exam_answers');
+    const savedStage = localStorage.getItem('exam_stage');
+    const savedTime = localStorage.getItem('exam_time');
+
+    if (savedAnswers) setAnswers(JSON.parse(savedAnswers));
+    if (savedStage) setStage(savedStage as any);
+    if (savedTime) setTimeLeft(parseInt(savedTime));
+    
+    setIsLoaded(true);
+  }, []);
+
+  // 2. حفظ البيانات فور حدوث أي تغيير
+  useEffect(() => {
+    if (isLoaded) {
+      localStorage.setItem('exam_answers', JSON.stringify(answers));
+      localStorage.setItem('exam_stage', stage);
+      localStorage.setItem('exam_time', timeLeft.toString());
+    }
+  }, [answers, stage, timeLeft, isLoaded]);
 
   const playSound = (src: string) => { 
     if (typeof window !== 'undefined') {
@@ -37,9 +60,8 @@ export default function ExamPage() {
 
   useEffect(() => {
     if (stage === 'result') {
-      // حل نهائي للصوت: بنستخدم encodeURIComponent عشان علامة الـ % والمسافات
-      const soundFile = `${percentage}% grade.mp3`;
-      const finalPath = `/exam sound/${encodeURIComponent(soundFile)}`;
+      const fileName = `${percentage}% grade.mp3`;
+      const finalPath = `/exam sound/${encodeURIComponent(fileName)}`;
       playSound(finalPath);
     }
   }, [stage, percentage]);
@@ -65,13 +87,20 @@ export default function ExamPage() {
     setAnswers(prev => ({ ...prev, [qId]: optionLetter }));
   };
 
+  // وظيفة لمسح الـ Storage لو حبيت الطالب يعيد الامتحان (ممكن تستخدمها في زرار سري)
+  const resetExam = () => {
+    localStorage.clear();
+    window.location.reload();
+  };
+
+  if (!isLoaded) return <div className="min-h-screen bg-[#020617]" />;
+
   return (
     <main className="min-h-screen bg-[#020617] font-sans relative overflow-hidden flex items-center justify-center text-white" dir="rtl">
       <AnimatePresence mode="wait">
         
         {stage === 'landing' && (
           <motion.div key="landing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, scale: 1.1 }} className="z-20 text-center p-6">
-              {/* حل مشكلة حرف الـ S: ضفنا pr-4 (padding right) عشان الميل ميتأكلش */}
               <div className="relative mb-2 flex items-center justify-center" style={{ direction: 'ltr' }}>
                 <h1 className="text-7xl font-[1000] tracking-tight italic flex px-8 leading-relaxed">
                   <span className="text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]">LO</span>
@@ -149,7 +178,7 @@ export default function ExamPage() {
 
         {stage === 'goodbye' && (
           <motion.div key="goodbye" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="text-center p-10">
-              <motion.div animate={{ rotate: [0, 15, -15, 0] }} transition={{ repeat: Infinity, duration: 2 }} className="text-8xl mb-8 inline-block origin-bottom border-none outline-none">👋</motion.div>
+              <motion.div animate={{ rotate: [0, 15, -15, 0] }} transition={{ repeat: Infinity, duration: 2 }} className="text-8xl mb-8 inline-block origin-bottom">👋</motion.div>
               <h1 className="text-5xl font-black text-white mb-4">إلى اللقاء!</h1>
               <p className="text-slate-400 text-xl font-medium mb-2">تم تسجيل خروجك بأمان</p>
               <p className="text-blue-500 font-bold tracking-widest italic uppercase">See you in the next challenge</p>
