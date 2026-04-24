@@ -19,7 +19,8 @@ export default function ExamPage() {
 
   const playSound = (src: string) => { 
     if (typeof window !== 'undefined') {
-      new Audio(src).play().catch(() => {}); 
+      const audio = new Audio(src);
+      audio.play().catch((err) => console.log("Audio play blocked or file not found", err)); 
     }
   };
 
@@ -66,8 +67,21 @@ export default function ExamPage() {
       <AnimatePresence mode="wait">
         {stage === 'landing' && (
           <motion.div key="landing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, scale: 1.1 }} className="z-20 text-center p-6">
-              <h1 className="text-6xl font-black mb-4 tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-500">LOCUS</h1>
-              <p className="text-blue-400 text-xl mb-12 font-bold uppercase tracking-[0.3em]">LOCUS DIGITAL</p>
+              
+              {/* Logo Design Fixed */}
+              <div className="relative mb-2 flex items-center justify-center gap-0 direction-ltr" style={{ direction: 'ltr' }}>
+                <h1 className="text-7xl font-[1000] tracking-tighter italic">
+                  <span className="text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]">LO</span>
+                  <span className="text-transparent bg-clip-text bg-gradient-to-br from-blue-400 to-indigo-600">CUS</span>
+                </h1>
+                {/* Creative underline element */}
+                <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-24 h-1 bg-gradient-to-r from-transparent via-blue-500 to-transparent blur-[1px]"></div>
+              </div>
+
+              <p className="text-blue-500 text-sm mb-12 font-black uppercase tracking-[0.6em] mt-4 opacity-80">
+                Locus Digital
+              </p>
+
               <button onClick={() => setStage('quiz')} className="bg-white text-black px-16 py-5 rounded-full text-2xl font-black shadow-2xl hover:bg-yellow-400 transition-colors">دخول الامتحان</button>
           </motion.div>
         )}
