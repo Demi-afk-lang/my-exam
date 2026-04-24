@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const EXAM_TIME = 60; 
@@ -16,11 +16,14 @@ export default function ExamPage() {
   const [stage, setStage] = useState<'landing' | 'quiz' | 'result' | 'goodbye'>('landing');
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [timeLeft, setTimeLeft] = useState(EXAM_TIME);
-
+  
+  // دالة تشغيل الصوت المحسنة
   const playSound = (src: string) => { 
     if (typeof window !== 'undefined') {
       const audio = new Audio(src);
-      audio.play().catch((err) => console.log("Audio play blocked or file not found", err)); 
+      audio.play().catch((err) => {
+        console.error("Audio error:", src, err);
+      }); 
     }
   };
 
@@ -35,9 +38,13 @@ export default function ExamPage() {
     return "صفر؟ أنت كنت فاتح الامتحان تتفرج على الدوائر؟ 🤡";
   };
 
+  // تشغيل صوت النتيجة عند الوصول للمرحلة النهائية
   useEffect(() => {
     if (stage === 'result') {
-      playSound(`/exam sound/${percentage}% grade.mp3`);
+      // التأكد من أن اسم الملف مطابق تماماً لما هو موجود في الـ public folder
+      // ملاحظة: تأكد أن الملف اسمه مثلاً "100% grade.mp3" بدون مسافات زائدة
+      const soundPath = `/exam sound/${percentage}% grade.mp3`;
+      playSound(soundPath);
     }
   }, [stage, percentage]);
 
@@ -68,17 +75,16 @@ export default function ExamPage() {
         {stage === 'landing' && (
           <motion.div key="landing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, scale: 1.1 }} className="z-20 text-center p-6">
               
-              {/* Logo Design Fixed */}
-              <div className="relative mb-2 flex items-center justify-center gap-0 direction-ltr" style={{ direction: 'ltr' }}>
-                <h1 className="text-7xl font-[1000] tracking-tighter italic">
+              {/* حل مشكلة قص حرف الـ S وحل مشكلة الترتيب */}
+              <div className="relative mb-2 flex items-center justify-center" style={{ direction: 'ltr' }}>
+                <h1 className="text-7xl font-[1000] tracking-tight italic flex px-6">
                   <span className="text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]">LO</span>
-                  <span className="text-transparent bg-clip-text bg-gradient-to-br from-blue-400 to-indigo-600">CUS</span>
+                  <span className="text-transparent bg-clip-text bg-gradient-to-br from-blue-400 to-indigo-600 pb-2">CUS</span>
                 </h1>
-                {/* Creative underline element */}
-                <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-24 h-1 bg-gradient-to-r from-transparent via-blue-500 to-transparent blur-[1px]"></div>
+                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-32 h-1 bg-gradient-to-r from-transparent via-blue-500 to-transparent blur-[1px]"></div>
               </div>
 
-              <p className="text-blue-500 text-sm mb-12 font-black uppercase tracking-[0.6em] mt-4 opacity-80">
+              <p className="text-blue-500 text-sm mb-12 font-black uppercase tracking-[0.6em] mt-6 opacity-80">
                 Locus Digital
               </p>
 
