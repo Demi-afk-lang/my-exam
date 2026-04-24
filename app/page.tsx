@@ -18,7 +18,7 @@ export default function ExamPage() {
   const [timeLeft, setTimeLeft] = useState(EXAM_TIME);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // 1. استعادة البيانات عند تحميل الصفحة
+  // استعادة البيانات عند تحميل الصفحة (حماية من الريفريش)
   useEffect(() => {
     const savedAnswers = localStorage.getItem('exam_answers');
     const savedStage = localStorage.getItem('exam_stage');
@@ -31,7 +31,7 @@ export default function ExamPage() {
     setIsLoaded(true);
   }, []);
 
-  // 2. حفظ البيانات فور حدوث أي تغيير
+  // حفظ البيانات فور حدوث أي تغيير
   useEffect(() => {
     if (isLoaded) {
       localStorage.setItem('exam_answers', JSON.stringify(answers));
@@ -87,12 +87,6 @@ export default function ExamPage() {
     setAnswers(prev => ({ ...prev, [qId]: optionLetter }));
   };
 
-  // وظيفة لمسح الـ Storage لو حبيت الطالب يعيد الامتحان (ممكن تستخدمها في زرار سري)
-  const resetExam = () => {
-    localStorage.clear();
-    window.location.reload();
-  };
-
   if (!isLoaded) return <div className="min-h-screen bg-[#020617]" />;
 
   return (
@@ -101,19 +95,23 @@ export default function ExamPage() {
         
         {stage === 'landing' && (
           <motion.div key="landing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, scale: 1.1 }} className="z-20 text-center p-6">
-              <div className="relative mb-2 flex items-center justify-center" style={{ direction: 'ltr' }}>
-                <h1 className="text-7xl font-[1000] tracking-tight italic flex px-8 leading-relaxed">
-                  <span className="text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]">LO</span>
-                  <span className="text-transparent bg-clip-text bg-gradient-to-br from-blue-400 to-indigo-600 pb-2">CUS</span>
+              
+              {/* اللوجو الجديد Branding Pro */}
+              <div className="relative mb-6 flex flex-col items-center justify-center select-none" style={{ direction: 'ltr' }}>
+                <h1 className="text-8xl font-[1000] tracking-tighter italic flex items-center px-10 overflow-visible">
+                  <span className="text-white drop-shadow-[0_10px_20px_rgba(255,255,255,0.2)]">LOCU</span>
+                  <span className="text-transparent bg-clip-text bg-gradient-to-br from-blue-400 via-indigo-500 to-purple-600 drop-shadow-[0_0_15px_rgba(99,102,241,0.5)] pr-4">S</span>
                 </h1>
-                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-32 h-1 bg-gradient-to-r from-transparent via-blue-500 to-transparent blur-[1px]"></div>
+                
+                {/* خط التوهج السفلي (Cinema Style) */}
+                <div className="w-48 h-[2px] bg-gradient-to-r from-transparent via-blue-500 to-transparent blur-[1px] mt-[-10px] opacity-60"></div>
+                
+                <p className="text-blue-400 text-[10px] font-black uppercase tracking-[1em] mt-6 ml-2 opacity-90">
+                  DIGITAL EXPERIENCE
+                </p>
               </div>
 
-              <p className="text-blue-500 text-sm mb-12 font-black uppercase tracking-[0.6em] mt-6 opacity-80">
-                Locus Digital
-              </p>
-
-              <button onClick={() => setStage('quiz')} className="bg-white text-black px-16 py-5 rounded-full text-2xl font-black shadow-2xl hover:bg-yellow-400 transition-colors">دخول الامتحان</button>
+              <button onClick={() => setStage('quiz')} className="mt-8 bg-white text-black px-16 py-5 rounded-full text-2xl font-black shadow-[0_20px_50px_rgba(255,255,255,0.1)] hover:bg-blue-500 hover:text-white transition-all duration-300 transform hover:scale-105 active:scale-95">دخول الامتحان</button>
           </motion.div>
         )}
 
@@ -159,7 +157,7 @@ export default function ExamPage() {
               ))}
             </div>
             {Object.keys(answers).length === fastQuestions.length && (
-              <button onClick={() => setStage('result')} className="w-full mt-10 bg-yellow-500 text-black py-5 rounded-3xl font-black text-2xl shadow-2xl">عرض النتيجة</button>
+              <button onClick={() => setStage('result')} className="w-full mt-10 bg-blue-600 text-white py-5 rounded-3xl font-black text-2xl shadow-2xl hover:bg-blue-500 transition-colors">عرض النتيجة</button>
             )}
           </motion.div>
         )}
@@ -177,8 +175,15 @@ export default function ExamPage() {
         )}
 
         {stage === 'goodbye' && (
-          <motion.div key="goodbye" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="text-center p-10">
-              <motion.div animate={{ rotate: [0, 15, -15, 0] }} transition={{ repeat: Infinity, duration: 2 }} className="text-8xl mb-8 inline-block origin-bottom">👋</motion.div>
+          <motion.div key="goodbye" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="text-center p-10 flex flex-col items-center">
+              {/* حل مشكلة الخط الأبيض بجانب الإيد */}
+              <motion.div 
+                animate={{ rotate: [0, 15, -15, 15, 0] }} 
+                transition={{ repeat: Infinity, duration: 2 }} 
+                className="text-8xl mb-8 inline-block origin-bottom border-none outline-none shadow-none"
+              >
+                👋
+              </motion.div>
               <h1 className="text-5xl font-black text-white mb-4">إلى اللقاء!</h1>
               <p className="text-slate-400 text-xl font-medium mb-2">تم تسجيل خروجك بأمان</p>
               <p className="text-blue-500 font-bold tracking-widest italic uppercase">See you in the next challenge</p>
