@@ -35,12 +35,12 @@ export default function ExamPage() {
     return "صفر؟ أنت كنت فاتح الامتحان تتفرج على الدوائر؟ 🤡";
   };
 
-  // تشغيل صوت النتيجة عند الوصول للمرحلة النهائية مع حل مشكلة المسافات والرموز
   useEffect(() => {
     if (stage === 'result') {
-      const fileName = `${percentage}% grade.mp3`;
-      const soundPath = `/exam sound/${encodeURIComponent(fileName)}`;
-      playSound(soundPath);
+      // حل نهائي للصوت: بنستخدم encodeURIComponent عشان علامة الـ % والمسافات
+      const soundFile = `${percentage}% grade.mp3`;
+      const finalPath = `/exam sound/${encodeURIComponent(soundFile)}`;
+      playSound(finalPath);
     }
   }, [stage, percentage]);
 
@@ -71,8 +71,9 @@ export default function ExamPage() {
         
         {stage === 'landing' && (
           <motion.div key="landing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, scale: 1.1 }} className="z-20 text-center p-6">
+              {/* حل مشكلة حرف الـ S: ضفنا pr-4 (padding right) عشان الميل ميتأكلش */}
               <div className="relative mb-2 flex items-center justify-center" style={{ direction: 'ltr' }}>
-                <h1 className="text-7xl font-[1000] tracking-tight italic flex px-6">
+                <h1 className="text-7xl font-[1000] tracking-tight italic flex px-8 leading-relaxed">
                   <span className="text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]">LO</span>
                   <span className="text-transparent bg-clip-text bg-gradient-to-br from-blue-400 to-indigo-600 pb-2">CUS</span>
                 </h1>
@@ -148,7 +149,7 @@ export default function ExamPage() {
 
         {stage === 'goodbye' && (
           <motion.div key="goodbye" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="text-center p-10">
-              <motion.div animate={{ rotate: [0, 15, -15, 0] }} transition={{ repeat: Infinity, duration: 2 }} className="text-8xl mb-8 inline-block origin-bottom">👋</motion.div>
+              <motion.div animate={{ rotate: [0, 15, -15, 0] }} transition={{ repeat: Infinity, duration: 2 }} className="text-8xl mb-8 inline-block origin-bottom border-none outline-none">👋</motion.div>
               <h1 className="text-5xl font-black text-white mb-4">إلى اللقاء!</h1>
               <p className="text-slate-400 text-xl font-medium mb-2">تم تسجيل خروجك بأمان</p>
               <p className="text-blue-500 font-bold tracking-widest italic uppercase">See you in the next challenge</p>
