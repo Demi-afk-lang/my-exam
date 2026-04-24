@@ -4,7 +4,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 const EXAM_TIME = 60; 
 
-const fastQuestions = [
+interface Question {
+  id: number;
+  text: string;
+  options: string[];
+  correct: string;
+}
+
+const fastQuestions: Question[] = [
   { id: 1, text: "ما هي عاصمة جمهورية مصر العربية؟", options: ["الإسكندرية", "القاهرة", "طنطا", "الجيزة"], correct: "B" },
   { id: 2, text: "محافظة الغربية مشهورة بمدينة الصناعة وهي؟", options: ["المحلة الكبرى", "كفر الشيخ", "المنصورة", "دمنهور"], correct: "A" },
   { id: 3, text: "أكبر كوكب في المجموعة الشمسية هو؟", options: ["الأرض", "المريخ", "المشترى", "زحل"], correct: "C" },
@@ -27,25 +34,30 @@ export default function ExamPage() {
   const percentage = (score / fastQuestions.length) * 100;
 
   const getFeedback = () => {
-    if (percentage === 100) return "عبقري.. أنت أكيد بتغش! 🧠✨";
-    if (percentage >= 80) return "ممتاز جداً.. فاضلك تكة وتوصل! 🚀";
-    if (percentage >= 50) return "شغال.. بس محتاج تشد حيلك شوية. 📚";
-    return "محتاج مراجعة يا بطل! 💀";
+    if (percentage === 100) return "عبقري.. أنت أكيد بتغش من المحافظ! 🧠✨";
+    if (percentage >= 80) return "ممتاز جداً.. فاضلك تكة وتبقى وزير! 🚀";
+    if (percentage >= 50) return "شغال.. بس محتاج تشد حيلك شوية يا بطل. 📚";
+    if (percentage > 0) return "يا أخي حرام عليك.. الكتاب زعل منك! 💀";
+    return "صفر؟ أنت كنت فاتح الامتحان تتفرج على الدوائر؟ 🤡";
   };
 
   useEffect(() => {
     if (stage === 'result') {
-      playSound(`/exam sound/${percentage}% grade.mp3`);
+      const fileName = `${percentage}% grade.mp3`;
+      const soundPath = `/exam sound/${encodeURIComponent(fileName)}`;
+      const audio = new Audio(soundPath);
+      audio.play().catch(err => console.error("Error playing result sound:", err));
     }
   }, [stage, percentage]);
 
   useEffect(() => {
+    let timer: NodeJS.Timeout;
     if (stage === 'quiz' && timeLeft > 0) {
-      const timer = setInterval(() => setTimeLeft((prev) => prev - 1), 1000);
-      return () => clearInterval(timer);
+      timer = setInterval(() => setTimeLeft((prev) => prev - 1), 1000);
     } else if (timeLeft === 0 && stage === 'quiz') {
       setStage('result');
     }
+    return () => { if (timer) clearInterval(timer); };
   }, [stage, timeLeft]);
 
   const handleSelect = (qId: number, optionLetter: string) => {
@@ -56,17 +68,16 @@ export default function ExamPage() {
     } else {
       playSound('/exam sound/wrong answer.mp3');
     }
-    setAnswers({ ...answers, [qId]: optionLetter });
+    setAnswers(prev => ({ ...prev, [qId]: optionLetter }));
   };
 
   return (
     <main className="min-h-screen bg-[#020617] font-sans relative overflow-hidden flex items-center justify-center text-white" dir="rtl">
       <AnimatePresence mode="wait">
-        
         {stage === 'landing' && (
           <motion.div key="landing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, scale: 1.1 }} className="z-20 text-center p-6">
               <h1 className="text-6xl font-black mb-4 tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-500">LOCUS</h1>
-              <p className="text-blue-400 text-xl mb-12 font-bold uppercase tracking-[0.3em]">LOCUS DIGITAL SYSTEM</p>
+              <p className="text-blue-400 text-xl mb-12 font-bold uppercase tracking-[0.3em]">LOCUS DIGITAL</p>
               <button onClick={() => setStage('quiz')} className="bg-white text-black px-16 py-5 rounded-full text-2xl font-black shadow-2xl hover:bg-yellow-400 transition-colors">دخول الامتحان</button>
           </motion.div>
         )}
@@ -74,17 +85,17 @@ export default function ExamPage() {
         {stage === 'quiz' && (
           <motion.div key="quiz" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }} className="w-full max-w-3xl p-6 relative">
             <div className="fixed top-6 left-6 z-30 flex items-center gap-3 bg-[#0f172a]/90 backdrop-blur-md p-4 rounded-3xl border border-slate-700 shadow-2xl">
-               <div className="relative w-14 h-7 border-2 border-slate-500 rounded-md p-[2px] after:content-[''] after:absolute after:-right-[6px] after:top-1/2 after:-translate-y-1/2 after:w-[4px] after:h-3 after:bg-slate-500 after:rounded-r-sm">
-                  <motion.div 
+                <div className="relative w-14 h-7 border-2 border-slate-500 rounded-md p-[2px] after:content-[''] after:absolute after:-right-[6px] after:top-1/2 after:-translate-y-1/2 after:w-[4px] after:h-3 after:bg-slate-500 after:rounded-r-sm">
+                    <motion.div 
                     initial={{ width: "100%" }}
                     animate={{ 
                       width: `${(timeLeft / EXAM_TIME) * 100}%`,
-                      backgroundColor: timeLeft <= 15 ? "#ef4444" : "#22c55e" 
+                      backgroundColor: timeLeft <= 15 ? "#ef4444" : timeLeft <= 30 ? "#eab308" : "#22c55e" 
                     }}
                     className="h-full rounded-sm"
                   />
-               </div>
-               <span className="font-mono font-bold text-lg text-white">{timeLeft}s</span>
+                </div>
+                <span className={`font-mono font-bold text-lg ${timeLeft <= 10 ? "text-red-500 animate-pulse" : "text-white"}`}>{timeLeft}s</span>
             </div>
 
             <div className="space-y-6 mt-16">
@@ -120,20 +131,24 @@ export default function ExamPage() {
 
         {stage === 'result' && (
           <motion.div key="result" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, y: -20 }} className="z-50 text-center p-8 bg-[#0f172a] border border-slate-800 rounded-[50px] shadow-3xl max-w-md w-full mx-4">
-             <h2 className="text-slate-500 text-sm font-bold mb-4 uppercase tracking-widest">درجتك النهائية</h2>
-             <div className="text-8xl font-black mb-4 text-white">{percentage}%</div>
-             <p className="text-2xl font-bold mb-8 text-yellow-400 px-4 leading-relaxed">{getFeedback()}</p>
-             <button onClick={() => setStage('goodbye')} className="w-full py-4 bg-white/5 hover:bg-white/10 rounded-2xl text-slate-300 font-bold">خروج</button>
+              <h2 className="text-slate-500 text-sm font-bold mb-4 uppercase tracking-widest text-arabic">درجتك النهائية هي</h2>
+              <div className="text-8xl font-black mb-4 text-white">{percentage}%</div>
+              <p className="text-2xl font-bold mb-8 text-yellow-400 px-4 leading-relaxed">{getFeedback()}</p>
+              <div className="h-2 w-full bg-slate-800 rounded-full mb-10 overflow-hidden">
+                  <motion.div initial={{ width: 0 }} animate={{ width: `${percentage}%` }} transition={{ duration: 1 }} className="h-full bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.5)]" />
+              </div>
+              <button onClick={() => setStage('goodbye')} className="w-full py-4 bg-white/5 hover:bg-white/10 rounded-2xl text-slate-300 font-bold transition-colors">إغلاق الامتحان</button>
           </motion.div>
         )}
 
         {stage === 'goodbye' && (
           <motion.div key="goodbye" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="text-center p-10">
-             <h1 className="text-5xl font-black text-white mb-4">Locus</h1>
-             <p className="text-slate-400 text-xl mb-2">إلى اللقاء في تحدي جديد</p>
+              <motion.div animate={{ rotate: [0, 15, -15, 0] }} transition={{ repeat: Infinity, duration: 2 }} className="text-8xl mb-8 inline-block">👋</motion.div>
+              <h1 className="text-5xl font-black text-white mb-4">إلى اللقاء!</h1>
+              <p className="text-slate-400 text-xl font-medium mb-2">تم تسجيل خروجك بأمان</p>
+              <p className="text-blue-500 font-bold tracking-widest italic uppercase">See you in the next challenge</p>
           </motion.div>
         )}
-
       </AnimatePresence>
     </main>
   );
