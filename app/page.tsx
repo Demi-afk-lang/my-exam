@@ -31,7 +31,7 @@ export default function ExamPage() {
     if (percentage >= 80) return "ممتاز جداً.. فاضلك تكة وتبقى وزير! 🚀";
     if (percentage >= 50) return "شغال.. بس محتاج تشد حيلك شوية يا بطل. 📚";
     if (percentage > 0) return "يا أخي حرام عليك.. الكتاب زعل منك! 💀";
-    return "صفر؟ أنت كنت فاتح الامتحان تتفرج على الدوائر? 🤡";
+    return "صفر؟ أنت كنت فاتح الامتحان تتفرج على الدوائر؟ 🤡";
   };
 
   useEffect(() => {
@@ -66,22 +66,8 @@ export default function ExamPage() {
       <AnimatePresence mode="wait">
         {stage === 'landing' && (
           <motion.div key="landing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, scale: 1.1 }} className="z-20 text-center p-6">
-              
-              {/* اللوجو بتصميم كاتشي وكريتيف */}
-              <div className="relative inline-block mb-2 group">
-                <h1 className="text-7xl font-[1000] tracking-tighter flex items-center justify-center italic">
-                  <span className="text-white drop-shadow-[0_0_20px_rgba(255,255,255,0.4)] transition-transform group-hover:-skew-x-12 duration-300">LO</span>
-                  <span className="relative text-transparent bg-clip-text bg-gradient-to-br from-blue-400 via-indigo-500 to-purple-600 px-1 transition-transform group-hover:skew-x-12 duration-300">
-                    CUS
-                    <span className="absolute -bottom-1 left-0 w-full h-[6px] bg-blue-600 rounded-full blur-[2px] opacity-50 group-hover:opacity-100 transition-opacity"></span>
-                  </span>
-                </h1>
-              </div>
-
-              <p className="text-blue-500 text-sm mb-12 font-black uppercase tracking-[0.6em] block opacity-90">
-                Locus Digital
-              </p>
-
+              <h1 className="text-6xl font-black mb-4 tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-500">LOCUS</h1>
+              <p className="text-blue-400 text-xl mb-12 font-bold uppercase tracking-[0.3em]">LOCUS DIGITAL</p>
               <button onClick={() => setStage('quiz')} className="bg-white text-black px-16 py-5 rounded-full text-2xl font-black shadow-2xl hover:bg-yellow-400 transition-colors">دخول الامتحان</button>
           </motion.div>
         )}
