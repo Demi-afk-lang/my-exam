@@ -17,8 +17,9 @@ export default function ExamPage() {
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [timeLeft, setTimeLeft] = useState(EXAM_TIME);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [devClicks, setDevClicks] = useState(0);
 
-  // استعادة البيانات عند تحميل الصفحة (حماية من الريفريش)
+  // استعادة البيانات عند تحميل الصفحة
   useEffect(() => {
     const savedAnswers = localStorage.getItem('exam_answers');
     const savedStage = localStorage.getItem('exam_stage');
@@ -31,7 +32,7 @@ export default function ExamPage() {
     setIsLoaded(true);
   }, []);
 
-  // حفظ البيانات فور حدوث أي تغيير
+  // حفظ البيانات أوتوماتيكياً
   useEffect(() => {
     if (isLoaded) {
       localStorage.setItem('exam_answers', JSON.stringify(answers));
@@ -39,6 +40,19 @@ export default function ExamPage() {
       localStorage.setItem('exam_time', timeLeft.toString());
     }
   }, [answers, stage, timeLeft, isLoaded]);
+
+  // دالة الريست السرية (تاخد عدد الضغطات المطلوبة)
+  const handleSecretReset = (required: number) => {
+    setDevClicks(prev => {
+      const newCount = prev + 1;
+      if (newCount >= required) {
+        localStorage.clear();
+        window.location.reload();
+        return 0;
+      }
+      return newCount;
+    });
+  };
 
   const playSound = (src: string) => { 
     if (typeof window !== 'undefined') {
@@ -95,45 +109,30 @@ export default function ExamPage() {
         
         {stage === 'landing' && (
           <motion.div key="landing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, scale: 1.1 }} className="z-20 text-center p-6">
-              
-              {/* اللوجو الجديد Branding Pro */}
               <div className="relative mb-6 flex flex-col items-center justify-center select-none" style={{ direction: 'ltr' }}>
                 <h1 className="text-8xl font-[1000] tracking-tighter italic flex items-center px-10 overflow-visible">
                   <span className="text-white drop-shadow-[0_10px_20px_rgba(255,255,255,0.2)]">LOCU</span>
                   <span className="text-transparent bg-clip-text bg-gradient-to-br from-blue-400 via-indigo-500 to-purple-600 drop-shadow-[0_0_15px_rgba(99,102,241,0.5)] pr-4">S</span>
                 </h1>
-                
-                {/* خط التوهج السفلي (Cinema Style) */}
                 <div className="w-48 h-[2px] bg-gradient-to-r from-transparent via-blue-500 to-transparent blur-[1px] mt-[-10px] opacity-60"></div>
-                
-                <p className="text-blue-400 text-[10px] font-black uppercase tracking-[1em] mt-6 ml-2 opacity-90">
-                  DIGITAL EXPERIENCE
-                </p>
+                {/* ريست بـ 3 ضغطات هنا احتياطي برضه */}
+                <p onClick={() => handleSecretReset(3)} className="text-blue-400 text-[10px] font-black uppercase tracking-[1em] mt-6 ml-2 opacity-90 cursor-default">DIGITAL EXPERIENCE</p>
               </div>
-
-              <button onClick={() => setStage('quiz')} className="mt-8 bg-white text-black px-16 py-5 rounded-full text-2xl font-black shadow-[0_20px_50px_rgba(255,255,255,0.1)] hover:bg-blue-500 hover:text-white transition-all duration-300 transform hover:scale-105 active:scale-95">دخول الامتحان</button>
+              <button onClick={() => setStage('quiz')} className="mt-8 bg-white text-black px-16 py-5 rounded-full text-2xl font-black shadow-2xl hover:bg-blue-500 hover:text-white transition-all transform hover:scale-105">دخول الامتحان</button>
           </motion.div>
         )}
 
         {stage === 'quiz' && (
-          <motion.div key="quiz" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }} className="w-full max-w-3xl p-6 relative">
-            <div className="fixed top-6 left-6 z-30 flex items-center gap-3 bg-[#0f172a]/90 backdrop-blur-md p-4 rounded-3xl border border-slate-700 shadow-2xl">
-                <div className="relative w-14 h-7 border-2 border-slate-500 rounded-md p-[2px] after:content-[''] after:absolute after:-right-[6px] after:top-1/2 after:-translate-y-1/2 after:w-[4px] after:h-3 after:bg-slate-500 after:rounded-r-sm">
-                    <motion.div 
-                    initial={{ width: "100%" }}
-                    animate={{ 
-                      width: `${(timeLeft / EXAM_TIME) * 100}%`,
-                      backgroundColor: timeLeft <= 15 ? "#ef4444" : timeLeft <= 30 ? "#eab308" : "#22c55e" 
-                    }}
-                    className="h-full rounded-sm"
-                  />
+          <motion.div key="quiz" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-3xl p-6 relative">
+            <div className="fixed top-6 left-6 z-30 flex items-center gap-3 bg-[#0f172a]/90 backdrop-blur-md p-4 rounded-3xl border border-slate-700">
+                <div className="relative w-14 h-7 border-2 border-slate-500 rounded-md p-[2px]">
+                    <motion.div animate={{ width: `${(timeLeft / EXAM_TIME) * 100}%`, backgroundColor: timeLeft <= 15 ? "#ef4444" : "#22c55e" }} className="h-full rounded-sm" />
                 </div>
-                <span className={`font-mono font-bold text-lg ${timeLeft <= 10 ? "text-red-500 animate-pulse" : "text-white"}`}>{timeLeft}s</span>
+                <span className="font-mono font-bold text-lg">{timeLeft}s</span>
             </div>
-
             <div className="space-y-6 mt-16">
               {fastQuestions.map((q) => (
-                <div key={q.id} className="bg-[#0f172a] p-8 rounded-[35px] border border-slate-800 shadow-2xl">
+                <div key={q.id} className="bg-[#0f172a] p-8 rounded-[35px] border border-slate-800">
                   <h3 className="text-xl font-bold mb-6">{q.text}</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {q.options.map((option, idx) => {
@@ -147,7 +146,7 @@ export default function ExamPage() {
                       }
                       return (
                         <button key={option} onClick={() => handleSelect(q.id, letter)} className={`p-4 rounded-2xl border-2 transition-all text-right font-bold flex items-center ${style}`}>
-                          <span className="w-8 h-8 flex items-center justify-center rounded-full ml-3 bg-black/20 text-yellow-500">{letter}</span>
+                          <span className="w-8 h-8 flex items-center justify-center rounded-full ml-3 bg-black/20">{letter}</span>
                           {option}
                         </button>
                       );
@@ -157,16 +156,16 @@ export default function ExamPage() {
               ))}
             </div>
             {Object.keys(answers).length === fastQuestions.length && (
-              <button onClick={() => setStage('result')} className="w-full mt-10 bg-blue-600 text-white py-5 rounded-3xl font-black text-2xl shadow-2xl hover:bg-blue-500 transition-colors">عرض النتيجة</button>
+              <button onClick={() => setStage('result')} className="w-full mt-10 bg-blue-600 text-white py-5 rounded-3xl font-black text-2xl shadow-2xl">عرض النتيجة</button>
             )}
           </motion.div>
         )}
 
         {stage === 'result' && (
-          <motion.div key="result" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, y: -20 }} className="z-50 text-center p-8 bg-[#0f172a] border border-slate-800 rounded-[50px] shadow-3xl max-w-md w-full mx-4">
+          <motion.div key="result" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} className="z-50 text-center p-8 bg-[#0f172a] border border-slate-800 rounded-[50px] shadow-3xl max-w-md w-full">
               <h2 className="text-slate-500 text-sm font-bold mb-4 uppercase tracking-widest">درجتك النهائية هي</h2>
               <div className="text-8xl font-black mb-4 text-white">{percentage}%</div>
-              <p className="text-2xl font-bold mb-8 text-yellow-400 px-4 leading-relaxed">{getFeedback()}</p>
+              <p className="text-2xl font-bold mb-8 text-yellow-400 leading-relaxed">{getFeedback()}</p>
               <div className="h-2 w-full bg-slate-800 rounded-full mb-10 overflow-hidden">
                   <motion.div initial={{ width: 0 }} animate={{ width: `${percentage}%` }} transition={{ duration: 1 }} className="h-full bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.5)]" />
               </div>
@@ -175,18 +174,19 @@ export default function ExamPage() {
         )}
 
         {stage === 'goodbye' && (
-          <motion.div key="goodbye" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="text-center p-10 flex flex-col items-center">
-              {/* حل مشكلة الخط الأبيض بجانب الإيد */}
+          <motion.div key="goodbye" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="text-center p-10 flex flex-col items-center select-none">
+              {/* هنا السر: دوس على الإيد 4 مرات عشان ترستر */}
               <motion.div 
+                onClick={() => handleSecretReset(4)}
                 animate={{ rotate: [0, 15, -15, 15, 0] }} 
                 transition={{ repeat: Infinity, duration: 2 }} 
-                className="text-8xl mb-8 inline-block origin-bottom border-none outline-none shadow-none"
+                className="text-8xl mb-8 inline-block origin-bottom cursor-pointer border-none outline-none focus:ring-0 active:scale-90 transition-transform"
               >
                 👋
               </motion.div>
               <h1 className="text-5xl font-black text-white mb-4">إلى اللقاء!</h1>
               <p className="text-slate-400 text-xl font-medium mb-2">تم تسجيل خروجك بأمان</p>
-              <p className="text-blue-500 font-bold tracking-widest italic uppercase">See you in the next challenge</p>
+              <p className="text-blue-500 font-bold tracking-widest italic uppercase">SEE YOU IN THE NEXT CHALLENGE</p>
           </motion.div>
         )}
 
