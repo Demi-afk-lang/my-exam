@@ -42,6 +42,29 @@ export default function ExamPage() {
   };
 
   useEffect(() => {
+    if (stage === 'quiz') {
+      const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+        e.preventDefault();
+        e.returnValue = ''; 
+      };
+
+      window.history.pushState(null, '', window.location.href);
+      const handlePopState = () => {
+        window.history.pushState(null, '', window.location.href);
+        alert("ممنوع الرجوع للخلف أثناء الامتحان! 🚫");
+      };
+
+      window.addEventListener('beforeunload', handleBeforeUnload);
+      window.addEventListener('popstate', handlePopState);
+
+      return () => {
+        window.removeEventListener('beforeunload', handleBeforeUnload);
+        window.removeEventListener('popstate', handlePopState);
+      };
+    }
+  }, [stage]);
+
+  useEffect(() => {
     if (stage === 'result') {
       const fileName = `${percentage}% grade.mp3`;
       const soundPath = `/exam sound/${encodeURIComponent(fileName)}`;
@@ -143,7 +166,7 @@ export default function ExamPage() {
 
         {stage === 'goodbye' && (
           <motion.div key="goodbye" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="text-center p-10">
-              <motion.div animate={{ rotate: [0, 15, -15, 0] }} transition={{ repeat: Infinity, duration: 2 }} className="text-8xl mb-8 inline-block">👋</motion.div>
+              <motion.div animate={{ rotate: [0, 15, -15, 0] }} transition={{ repeat: Infinity, duration: 2, ease: "linear" }} className="text-8xl mb-8 inline-block origin-bottom">👋</motion.div>
               <h1 className="text-5xl font-black text-white mb-4">إلى اللقاء!</h1>
               <p className="text-slate-400 text-xl font-medium mb-2">تم تسجيل خروجك بأمان</p>
               <p className="text-blue-500 font-bold tracking-widest italic uppercase">See you in the next challenge</p>
