@@ -4,14 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 const EXAM_TIME = 60; 
 
-interface Question {
-  id: number;
-  text: string;
-  options: string[];
-  correct: string;
-}
-
-const fastQuestions: Question[] = [
+const fastQuestions = [
   { id: 1, text: "ما هي عاصمة جمهورية مصر العربية؟", options: ["الإسكندرية", "القاهرة", "طنطا", "الجيزة"], correct: "B" },
   { id: 2, text: "محافظة الغربية مشهورة بمدينة الصناعة وهي؟", options: ["المحلة الكبرى", "كفر الشيخ", "المنصورة", "دمنهور"], correct: "A" },
   { id: 3, text: "أكبر كوكب في المجموعة الشمسية هو؟", options: ["الأرض", "المريخ", "المشترى", "زحل"], correct: "C" },
@@ -42,34 +35,8 @@ export default function ExamPage() {
   };
 
   useEffect(() => {
-    if (stage === 'quiz') {
-      const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-        e.preventDefault();
-        e.returnValue = ''; 
-      };
-
-      window.history.pushState(null, '', window.location.href);
-      const handlePopState = () => {
-        window.history.pushState(null, '', window.location.href);
-        alert("ممنوع الرجوع للخلف أثناء الامتحان! 🚫");
-      };
-
-      window.addEventListener('beforeunload', handleBeforeUnload);
-      window.addEventListener('popstate', handlePopState);
-
-      return () => {
-        window.removeEventListener('beforeunload', handleBeforeUnload);
-        window.removeEventListener('popstate', handlePopState);
-      };
-    }
-  }, [stage]);
-
-  useEffect(() => {
     if (stage === 'result') {
-      const fileName = `${percentage}% grade.mp3`;
-      const soundPath = `/exam sound/${encodeURIComponent(fileName)}`;
-      const audio = new Audio(soundPath);
-      audio.play().catch(err => console.error("Error playing result sound:", err));
+      playSound(`/exam sound/${percentage}% grade.mp3`);
     }
   }, [stage, percentage]);
 
@@ -95,48 +62,37 @@ export default function ExamPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#020617] font-sans relative overflow-hidden flex items-center justify-center text-white" dir="rtl">
+    <main className="min-h-screen bg-[#020617] font-sans flex items-center justify-center text-white" dir="rtl">
       <AnimatePresence mode="wait">
         {stage === 'landing' && (
-          <motion.div key="landing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, scale: 1.1 }} className="z-20 text-center p-6">
+          <motion.div key="landing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, scale: 1.1 }} className="text-center p-6">
               <h1 className="text-6xl font-black mb-4 tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-500">LOCUS</h1>
               <p className="text-blue-400 text-xl mb-12 font-bold uppercase tracking-[0.3em]">LOCUS DIGITAL</p>
-              <button onClick={() => setStage('quiz')} className="bg-white text-black px-16 py-5 rounded-full text-2xl font-black shadow-2xl hover:bg-yellow-400 transition-colors">دخول الامتحان</button>
+              <button onClick={() => setStage('quiz')} className="bg-white text-black px-16 py-5 rounded-full text-2xl font-black hover:bg-yellow-400 transition-colors">دخول الامتحان</button>
           </motion.div>
         )}
 
         {stage === 'quiz' && (
-          <motion.div key="quiz" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }} className="w-full max-w-3xl p-6 relative">
-            <div className="fixed top-6 left-6 z-30 flex items-center gap-3 bg-[#0f172a]/90 backdrop-blur-md p-4 rounded-3xl border border-slate-700 shadow-2xl">
-                <div className="relative w-14 h-7 border-2 border-slate-500 rounded-md p-[2px] after:content-[''] after:absolute after:-right-[6px] after:top-1/2 after:-translate-y-1/2 after:w-[4px] after:h-3 after:bg-slate-500 after:rounded-r-sm">
-                    <motion.div 
-                    initial={{ width: "100%" }}
-                    animate={{ 
-                      width: `${(timeLeft / EXAM_TIME) * 100}%`,
-                      backgroundColor: timeLeft <= 15 ? "#ef4444" : timeLeft <= 30 ? "#eab308" : "#22c55e" 
-                    }}
-                    className="h-full rounded-sm"
-                  />
-                </div>
-                <span className={`font-mono font-bold text-lg ${timeLeft <= 10 ? "text-red-500 animate-pulse" : "text-white"}`}>{timeLeft}s</span>
+          <motion.div key="quiz" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-3xl p-6">
+            <div className="fixed top-6 left-6 z-30 flex items-center gap-3 bg-[#0f172a]/90 backdrop-blur-md p-4 rounded-3xl border border-slate-700">
+               <span className="font-mono font-bold text-lg text-white">{timeLeft}s</span>
             </div>
-
             <div className="space-y-6 mt-16">
               {fastQuestions.map((q) => (
-                <div key={q.id} className="bg-[#0f172a] p-8 rounded-[35px] border border-slate-800 shadow-2xl">
+                <div key={q.id} className="bg-[#0f172a] p-8 rounded-[35px] border border-slate-800">
                   <h3 className="text-xl font-bold mb-6">{q.text}</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {q.options.map((option, idx) => {
                       const letter = ['A', 'B', 'C', 'D'][idx];
                       const isCorrect = letter === q.correct;
                       const isSelected = answers[q.id] === letter;
-                      let style = "border-slate-800 text-slate-400 hover:bg-slate-800";
+                      let style = "border-slate-800 text-slate-400";
                       if (!!answers[q.id]) {
                         if (isCorrect) style = "bg-emerald-600 border-emerald-400 text-white";
                         else if (isSelected) style = "bg-red-600 border-red-400 text-white";
                       }
                       return (
-                        <button key={option} onClick={() => handleSelect(q.id, letter)} className={`p-4 rounded-2xl border-2 transition-all text-right font-bold flex items-center ${style}`}>
+                        <button key={option} onClick={() => handleSelect(q.id, letter)} className={`p-4 rounded-2xl border-2 text-right font-bold flex items-center ${style}`}>
                           <span className="w-8 h-8 flex items-center justify-center rounded-full ml-3 bg-black/20 text-yellow-500">{letter}</span>
                           {option}
                         </button>
@@ -147,29 +103,26 @@ export default function ExamPage() {
               ))}
             </div>
             {Object.keys(answers).length === fastQuestions.length && (
-              <button onClick={() => setStage('result')} className="w-full mt-10 bg-yellow-500 text-black py-5 rounded-3xl font-black text-2xl shadow-2xl">عرض النتيجة</button>
+              <button onClick={() => setStage('result')} className="w-full mt-10 bg-yellow-500 text-black py-5 rounded-3xl font-black text-2xl">عرض النتيجة</button>
             )}
           </motion.div>
         )}
 
         {stage === 'result' && (
-          <motion.div key="result" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, y: -20 }} className="z-50 text-center p-8 bg-[#0f172a] border border-slate-800 rounded-[50px] shadow-3xl max-w-md w-full mx-4">
-              <h2 className="text-slate-500 text-sm font-bold mb-4 uppercase tracking-widest text-arabic">درجتك النهائية هي</h2>
+          <motion.div key="result" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} className="text-center p-8 bg-[#0f172a] border border-slate-800 rounded-[50px] max-w-md w-full">
+              <h2 className="text-slate-500 text-sm font-bold mb-4 uppercase">درجتك النهائية هي</h2>
               <div className="text-8xl font-black mb-4 text-white">{percentage}%</div>
-              <p className="text-2xl font-bold mb-8 text-yellow-400 px-4 leading-relaxed">{getFeedback()}</p>
-              <div className="h-2 w-full bg-slate-800 rounded-full mb-10 overflow-hidden">
-                  <motion.div initial={{ width: 0 }} animate={{ width: `${percentage}%` }} transition={{ duration: 1 }} className="h-full bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.5)]" />
-              </div>
-              <button onClick={() => setStage('goodbye')} className="w-full py-4 bg-white/5 hover:bg-white/10 rounded-2xl text-slate-300 font-bold transition-colors">إغلاق الامتحان</button>
+              <p className="text-2xl font-bold mb-8 text-yellow-400">{getFeedback()}</p>
+              <button onClick={() => setStage('goodbye')} className="w-full py-4 bg-white/5 rounded-2xl text-slate-300 font-bold">إغلاق الامتحان</button>
           </motion.div>
         )}
 
         {stage === 'goodbye' && (
           <motion.div key="goodbye" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="text-center p-10">
-              <motion.div animate={{ rotate: [0, 15, -15, 0] }} transition={{ repeat: Infinity, duration: 2, ease: "linear" }} className="text-8xl mb-8 inline-block origin-bottom">👋</motion.div>
+              <motion.div animate={{ rotate: [0, 15, -15, 0] }} transition={{ repeat: Infinity, duration: 2 }} className="text-8xl mb-8 inline-block">👋</motion.div>
               <h1 className="text-5xl font-black text-white mb-4">إلى اللقاء!</h1>
-              <p className="text-slate-400 text-xl font-medium mb-2">تم تسجيل خروجك بأمان</p>
-              <p className="text-blue-500 font-bold tracking-widest italic uppercase">See you in the next challenge</p>
+              <p className="text-slate-400 text-xl mb-2">تم تسجيل خروجك بأمان</p>
+              <p className="text-blue-500 font-bold italic uppercase">SEE YOU IN THE NEXT CHALLENGE</p>
           </motion.div>
         )}
       </AnimatePresence>
